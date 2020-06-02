@@ -1,86 +1,35 @@
-﻿using Opg1StaticMethod;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
-namespace OPG3TCPSERVER
+namespace OPG3TCPCLIENT
 {
     class Program
     {
-
         static void Main(string[] args)
         {
-            //Opret server
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
-            //Opret adresse eller port
-            TcpListener serverSocket = new TcpListener(ip, 7000);
-            //starter Server listener
-            serverSocket.Start();
-            Console.WriteLine("Server Started");
 
-            //While loekke der holder serveren koerende, og ventende paa clienter
-            while (true)
-            {
-                //threading der tillader flere clienter at forbinde
-                Task.Run(() =>
-                {               
-                    //Venter på client forbindelse
-                    TcpClient connectionSocket = serverSocket.AcceptTcpClient();
-                    Console.WriteLine("Client Connected");
-                    //kalder metoden DoClient ved forbindelses oprettelse
-                    DoClient(connectionSocket);
+            Console.WriteLine("Hello World it is client!");
+            Console.ReadLine();
 
-                });
 
-            }
+            TcpClient clientSocket = new TcpClient("localhost", 7000);
 
-        }
-        //TCP client til modsvar fra server til client
-        public static void DoClient(TcpClient socket)
-        {
-            Stream ns = socket.GetStream();
+
+            Stream ns = clientSocket.GetStream();  //provides a Stream
             StreamReader sr = new StreamReader(ns);
             StreamWriter sw = new StreamWriter(ns);
-            sw.AutoFlush = true;
-            string message = sr.ReadLine();
+            sw.AutoFlush = true; // enable automatic flushing
 
-            while (message != null && message != "")
-            {
-                //Laver clientens besked om til et array
-                string[] messageArray = message.Split(' ');
-
-                //opdeler kommando og parametre
-                string param = message.Substring(message.IndexOf(' ') + 1);
-                string command = messageArray[0];
-
-                switch (command)
-                {
-                    case "Gennemsnit":
-                        string[] par = param.Split(' ');
-                        sw.WriteLine("Gennemsnits braendstofsforbruget:" + TransportCalc.Average(int.Parse(par[0]), double.Parse(par[1])));
-
-                        break;
-                    case "TotalKm":
-
-                        sw.WriteLine("Summen af km koert:" + TransportCalc.Total(param));
-
-                        break;
-
-                    default:
-
-                        sw.WriteLine("Ugyldig kommando");
-                        break;
-                }
-                message = sr.ReadLine();
-            }
-
+            string message = Console.ReadLine();
+            sw.WriteLine(message);
+            string serverAnswer = sr.ReadLine();
+            Console.WriteLine("Server: " + serverAnswer);
 
             ns.Close();
-            socket.Close();
 
+            clientSocket.Close();
         }
     }
+
 }
